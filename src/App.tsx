@@ -220,13 +220,13 @@ function Footer() {
             </span>
           </div>
           <div className="flex gap-8 text-sm text-muted-foreground">
-            <a href="#" className="transition-colors hover:text-foreground">
+            <a href="/privacy.html" className="transition-colors hover:text-foreground">
               Privacy
             </a>
-            <a href="#" className="transition-colors hover:text-foreground">
+            <a href="/terms.html" className="transition-colors hover:text-foreground">
               Terms
             </a>
-            <a href="#" className="transition-colors hover:text-foreground">
+            <a href="mailto:support@brogrammers.agency" className="transition-colors hover:text-foreground">
               Contact
             </a>
           </div>
