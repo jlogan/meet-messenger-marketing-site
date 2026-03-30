@@ -1,6 +1,7 @@
-import { useState } from "react";
-import { MessageCircle, Users, Shield, Zap, ArrowRight } from "lucide-react";
+import { useState, type FormEvent } from "react";
+import { MessageCircle, Users, Shield, Zap, ArrowRight, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { getAppBaseUrl, getMarketingSupabase } from "@/lib/supabase";
 
 function Hero() {
   return (
@@ -105,6 +106,40 @@ function Features() {
 function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const appBase = getAppBaseUrl();
+
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    const trimmedEmail = email.trim().toLowerCase();
+    if (!trimmedEmail || !password) return;
+    setLoading(true);
+    try {
+      const supabase = getMarketingSupabase();
+      const { data, error: signError } = await supabase.auth.signInWithPassword({
+        email: trimmedEmail,
+        password,
+      });
+      if (signError) {
+        setError(signError.message);
+        return;
+      }
+      const access_token = data.session?.access_token;
+      const refresh_token = data.session?.refresh_token;
+      if (!access_token || !refresh_token) {
+        setError("No session returned. Try again.");
+        return;
+      }
+      const hash = new URLSearchParams({ access_token, refresh_token }).toString();
+      window.location.assign(`${appBase}/login#${hash}`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Sign-in failed");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <section id="login" className="py-24">
@@ -116,15 +151,15 @@ function LoginForm() {
             </h2>
             <p className="mt-2 text-muted-foreground">
               Or{" "}
-              <a href="#" className="font-medium text-primary hover:underline">
-                create a new account
+              <a
+                href={`${appBase}/login`}
+                className="font-medium text-primary hover:underline"
+              >
+                open the app to create an account
               </a>
             </p>
           </div>
-          <form
-            onSubmit={(e) => e.preventDefault()}
-            className="mt-8 space-y-4"
-          >
+          <form onSubmit={handleSubmit} className="mt-8 space-y-4">
             <div className="space-y-2">
               <label
                 htmlFor="email"
@@ -165,11 +200,24 @@ function LoginForm() {
                 )}
               />
             </div>
+            {error ? (
+              <p className="text-sm text-destructive" role="alert">
+                {error}
+              </p>
+            ) : null}
             <button
               type="submit"
-              className="inline-flex h-10 w-full items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground shadow transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              disabled={loading}
+              className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground shadow transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
             >
-              Sign In
+              {loading ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+                  Signing in…
+                </>
+              ) : (
+                "Sign In"
+              )}
             </button>
           </form>
         </div>
