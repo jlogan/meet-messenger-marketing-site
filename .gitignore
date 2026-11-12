@@ -7,6 +7,8 @@ dist-ssr
 *.local
 
 # Env (keep .env.example tracked)
+.env
+.env.*
 !.env.example
 
 # Logs
@@ -42,4 +44,3 @@ coverage
 
 # ESLint cache
 .eslintcache
-config.bat
